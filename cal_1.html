@@ -7,6 +7,7 @@
     <!-- Tailwind CSS CDN for basic styling -->
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
+        /* Custom styles for better readability and aesthetics */
         body {
             font-family: 'Inter', sans-serif;
             background-color: #f0fdf4; /* Light green background */
@@ -15,35 +16,60 @@
             justify-content: center;
             align-items: flex-start; /* Align to top for longer content */
             min-height: 100vh;
-            padding: 2rem;
+            padding: 1rem; /* Reduced padding for smaller screens */
             box-sizing: border-box;
+        }
+
+        /* Responsive adjustments for the main container */
+        .main-container {
+            max-width: 100%; /* Ensure it doesn't overflow on very small screens */
+            width: 100%; /* Full width on mobile */
+            padding: 1.5rem; /* Default padding for mobile */
+        }
+
+        /* Adjust padding for larger screens */
+        @media (min-width: 768px) { /* md breakpoint */
+            body {
+                padding: 2rem;
+            }
+            .main-container {
+                max-width: 48rem; /* Equivalent to max-w-2xl for desktop */
+                padding: 2rem; /* Increased padding for desktop */
+            }
+        }
+
+        /* Ensure input focus rings are consistent */
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.5); /* Green ring */
+            border-color: #10b981; /* Emerald-500 */
         }
     </style>
 </head>
 <body>
 
-    <div class="bg-white p-8 rounded-xl shadow-lg border border-gray-100 max-w-2xl w-full">
-        <h2 class="text-3xl font-bold text-center text-green-800 mb-8">Multi-Product Price Calculator</h2>
+    <div class="bg-white rounded-xl shadow-lg border border-gray-100 main-container">
+        <h2 class="text-2xl sm:text-3xl font-bold text-center text-green-800 mb-6 sm:mb-8">Multi-Product Price Calculator</h2>
 
-        <h3 class="text-xl font-bold text-green-700 mb-4">Today's Prices (per KG) - Editable</h3>
-        <div id="current-prices" class="grid grid-cols-2 md:grid-cols-3 gap-4 text-left text-gray-700 mb-8">
+        <h3 class="text-lg sm:text-xl font-bold text-green-700 mb-3 sm:mb-4">Today's Prices (per KG) - Editable</h3>
+        <div id="current-prices" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4 text-left text-gray-700 mb-6 sm:mb-8">
             <!-- Prices with input fields will be dynamically inserted here -->
         </div>
 
-        <h3 class="text-xl font-bold text-green-700 mb-4">Calculate Your Order</h3>
+        <h3 class="text-lg sm:text-xl font-bold text-green-700 mb-3 sm:mb-4">Calculate Your Order</h3>
         <div id="product-calculator-rows" class="space-y-4 mb-6">
             <!-- Product calculation rows will be dynamically inserted here by JS -->
         </div>
 
-        <button id="add-product-button" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg transition-colors duration-300">
+        <button id="add-product-button" class="w-full sm:w-auto bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg transition-colors duration-300">
             Add Product
         </button>
 
-        <div class="mt-6 text-3xl font-bold text-green-700 text-right">
+        <div class="mt-6 text-2xl sm:text-3xl font-bold text-green-700 text-right">
             Grand Total: ₹<span id="grand-total-price">0.00</span>
         </div>
 
-        <p class="text-gray-600 mt-4 text-sm text-center">
+        <p class="text-gray-600 mt-4 text-xs sm:text-sm text-center">
             *Prices are for demonstration and can be manually updated above.
         </p>
     </div>
@@ -76,18 +102,19 @@
 
 
         // Daily Prices Data (hardcoded for demonstration)
-        const initialDailyPrices = {
-            "Farm Grown Red Banana": 50, // Price per KG
-            "Farm Grown Normal Banana": 30,
-            "Fresh Tomatoes": 40,
-            "Organic Carrots": 60,
-            "Fresh Spinach": 25,
-            "Cucumber": 35,
-            "Snake Gourd": 45
-        };
+        // Changed to an array of objects to include Tamil names
+        const initialDailyPrices = [
+            { name: "Farm Grown Red Banana", tamilName: "செவ்வாழை", price: 50 }, // Price per KG
+            { name: "Farm Grown Normal Banana", tamilName: "சாதாரண வாழைப்பழம்", price: 30 },
+            { name: "Fresh Tomatoes", tamilName: "புதிய தக்காளி", price: 40 },
+            { name: "Organic Carrots", tamilName: "ஆர்கானிக் கேரட்", price: 60 },
+            { name: "Fresh Spinach", tamilName: "புதிய கீரை", price: 25 },
+            { name: "Cucumber", tamilName: "வெள்ளரி", price: 35 },
+            { name: "Snake Gourd", tamilName: "புடலங்காய்", price: 45 }
+        ];
 
         // Array to hold the state of selected products for calculation
-        // Each object will have: { id: uniqueId, productName: string, quantity: number, subtotal: number }
+        // Each object will have: { id: uniqueId, productName: string (English), quantity: number, subtotal: number }
         let selectedCalculationItems = [];
         let globalRowCounter = 0; // To ensure unique IDs for new rows
 
@@ -106,18 +133,24 @@
             selectedCalculationItems.forEach(item => {
                 const newRow = document.createElement('div');
                 newRow.id = `product-row-${item.id}`;
-                newRow.className = 'flex flex-col md:flex-row items-center justify-center space-y-2 md:space-y-0 md:space-x-4 border-b pb-4 mb-4 last:border-b-0 last:pb-0 last:mb-0';
+                // Adjusted classes for better mobile stacking and desktop alignment
+                newRow.className = 'flex flex-col sm:flex-row items-center justify-between space-y-3 sm:space-y-0 sm:space-x-4 border-b pb-4 mb-4 last:border-b-0 last:pb-0 last:mb-0';
+
+                // Find the product's Tamil name for display
+                const productInfo = initialDailyPrices.find(p => p.name === item.productName);
+                const displayName = productInfo ? `${productInfo.name} (${productInfo.tamilName})` : 'Select a Product';
+
                 newRow.innerHTML = `
-                    <select id="product-select-${item.id}" class="p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent w-full md:w-1/2 product-select">
+                    <select id="product-select-${item.id}" class="p-2 sm:p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent w-full sm:w-1/2 product-select text-base sm:text-lg">
                         <option value="">Select a Product</option>
-                        ${Object.keys(initialDailyPrices).map(productName => `
-                            <option value="${productName}" ${item.productName === productName ? 'selected' : ''}>${productName}</option>
+                        ${initialDailyPrices.map(product => `
+                            <option value="${product.name}" ${item.productName === product.name ? 'selected' : ''}>${product.name} (${product.tamilName})</option>
                         `).join('')}
                     </select>
                     <input type="number" id="quantity-input-${item.id}" placeholder="Quantity (kg)" step="0.1" min="0.1" value="${item.quantity > 0 ? item.quantity : ''}"
-                           class="p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent w-full md:w-1/4 quantity-input">
-                    <span id="subtotal-${item.id}" class="text-lg font-semibold text-gray-700 w-full md:w-1/6 text-center md:text-right">₹${item.subtotal.toFixed(2)}</span>
-                    <button type="button" data-id="${item.id}" class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-lg transition-colors duration-300 remove-product-button">
+                           class="p-2 sm:p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent w-full sm:w-1/4 quantity-input text-base sm:text-lg">
+                    <span id="subtotal-${item.id}" class="text-lg sm:text-xl font-semibold text-gray-700 w-full sm:w-1/6 text-center sm:text-right">₹${item.subtotal.toFixed(2)}</span>
+                    <button type="button" data-id="${item.id}" class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-3 rounded-lg transition-colors duration-300 remove-product-button text-sm sm:text-base">
                         Remove
                     </button>
                 `;
@@ -130,7 +163,7 @@
                     const id = event.target.id.split('-')[2];
                     const selectedItem = selectedCalculationItems.find(item => item.id == id);
                     if (selectedItem) {
-                        selectedItem.productName = event.target.value;
+                        selectedItem.productName = event.target.value; // Store English name
                         calculateSubtotalAndUpdateGrandTotal(id);
                     }
                 });
@@ -162,22 +195,18 @@
         function calculateSubtotalAndUpdateGrandTotal(id) {
             const itemToUpdate = selectedCalculationItems.find(item => item.id == id);
             if (itemToUpdate) {
-                const selectedProduct = itemToUpdate.productName;
+                const selectedProductEnglishName = itemToUpdate.productName; // Use English name for lookup
                 const quantity = itemToUpdate.quantity;
 
-                if (selectedProduct && !isNaN(quantity) && quantity > 0) {
-                    const priceInputId = `${selectedProduct.replace(/\s/g, '-')}-price`;
-                    const priceInput = document.getElementById(priceInputId);
+                // Find the current price from the editable price inputs
+                const priceInputId = `${selectedProductEnglishName.replace(/\s/g, '-')}-price`;
+                const priceInput = document.getElementById(priceInputId);
 
-                    if (priceInput) {
-                        const pricePerKg = parseFloat(priceInput.value);
-                        if (!isNaN(pricePerKg)) {
-                            itemToUpdate.subtotal = pricePerKg * quantity;
-                            document.getElementById(`subtotal-${id}`).textContent = `₹${itemToUpdate.subtotal.toFixed(2)}`;
-                        } else {
-                            itemToUpdate.subtotal = 0;
-                            document.getElementById(`subtotal-${id}`).textContent = '₹0.00';
-                        }
+                if (selectedProductEnglishName && !isNaN(quantity) && quantity > 0 && priceInput) {
+                    const pricePerKg = parseFloat(priceInput.value);
+                    if (!isNaN(pricePerKg)) {
+                        itemToUpdate.subtotal = pricePerKg * quantity;
+                        document.getElementById(`subtotal-${id}`).textContent = `₹${itemToUpdate.subtotal.toFixed(2)}`;
                     } else {
                         itemToUpdate.subtotal = 0;
                         document.getElementById(`subtotal-${id}`).textContent = '₹0.00';
@@ -206,7 +235,7 @@
             globalRowCounter++;
             selectedCalculationItems.push({
                 id: globalRowCounter,
-                productName: '', // Default empty selection
+                productName: '', // Default empty selection (English name)
                 quantity: 0,
                 subtotal: 0
             });
@@ -221,18 +250,26 @@
                 return;
             }
             currentPricesDiv.innerHTML = '';
-            for (const product in initialDailyPrices) {
-                if (initialDailyPrices.hasOwnProperty(product)) {
-                    const priceItem = `
-                        <div class="flex justify-between items-center bg-gray-50 p-3 rounded-md">
-                            <label for="${product.replace(/\s/g, '-')}-price" class="font-medium">${product}</label>
-                            <input type="number" id="${product.replace(/\s/g, '-')}-price" value="${initialDailyPrices[product].toFixed(2)}" step="0.01" min="0"
-                                   class="ml-2 p-1 border border-gray-300 rounded-md text-right w-24 text-green-600 font-semibold focus:ring-1 focus:ring-green-500">
-                        </div>
-                    `;
-                    currentPricesDiv.innerHTML += priceItem;
-                }
-            }
+            initialDailyPrices.forEach(product => {
+                const priceItem = `
+                    <div class="flex justify-between items-center bg-gray-50 p-2 sm:p-3 rounded-md">
+                        <label for="${product.name.replace(/\s/g, '-')}-price" class="font-medium text-sm sm:text-base">${product.name} (${product.tamilName})</label>
+                        <input type="number" id="${product.name.replace(/\s/g, '-')}-price" value="${product.price.toFixed(2)}" step="0.01" min="0"
+                               class="ml-2 p-1 border border-gray-300 rounded-md text-right w-20 sm:w-24 text-green-600 font-semibold focus:ring-1 focus:ring-green-500 text-sm sm:text-base price-input">
+                    </div>
+                `;
+                currentPricesDiv.innerHTML += priceItem;
+            });
+
+            // Add event listeners to price inputs to update calculations immediately
+            currentPricesDiv.querySelectorAll('.price-input').forEach(input => {
+                input.addEventListener('input', () => {
+                    // When a price changes, re-calculate all subtotals and the grand total
+                    selectedCalculationItems.forEach(item => {
+                        calculateSubtotalAndUpdateGrandTotal(item.id);
+                    });
+                });
+            });
         }
 
 
